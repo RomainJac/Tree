@@ -15,20 +15,24 @@
         display: flex;
         flex-direction: column;
         height: 100vh;
-        overflow: hidden; /* Prevent body from scrolling */
+        overflow: hidden;
+        /* Prevent body from scrolling */
     }
 
     #controls {
         padding: 10px;
         display: flex;
-        justify-content: space-between;
-        align-items: center; /* Align items vertically */
+        justify-content: flex-end;
+        /* Align items to the right */
+        align-items: center;
+        /* Align items vertically */
     }
 
     #mynetwork {
         flex: 1;
         border: 1px solid lightgray;
-        overflow: auto; /* Enable scrolling for the network */
+        overflow: auto;
+        /* Enable scrolling for the network */
     }
 
     button {
@@ -40,22 +44,80 @@
         display: flex;
     }
 
-    .zoom-button {
-        margin-right: 10px; /* Add some space between buttons */
+    .save-button {
+        margin-left: 10px;
+        /* Add some space between buttons */
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgb(0, 0, 0);
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 50%;
+    }
+
+    .close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .btn-container {
+        text-align: center;
     }
 </style>
 
 <body>
     <div id="controls">
         <div class="control-buttons">
-            <button id="zoomInButton" class="zoom-button">Zoom In</button>
-            <button id="zoomOutButton" class="zoom-button">Zoom Out</button>
-        </div>
-        <div class="control-buttons">
-            <button id="saveButton">Save Changes</button>
+            <button id="saveButton" class="save-button">Save Changes</button>
         </div>
     </div>
     <div id="mynetwork"></div>
+
+    <!-- Modal -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <input type="text" id="nodeLabelInput">
+            <div class="btn-container">
+                <button id="saveLabelButton">Save</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         async function loadTreeData() {
             const response = await fetch('/tree.json');
@@ -71,14 +133,6 @@
 
             const container = document.getElementById('mynetwork');
             const data = { nodes: nodes, edges: edges };
-
-            // Define colors for each hierarchy level
-            const colors = ['#FFFFFF', '#F0F00F', '#C41616']; // Example colors, you can add more colors as needed
-
-            // Set node color based on hierarchy level
-            nodes.forEach(function (node) {
-                node.color = colors[node.level - 1]; // Assuming 'level' property exists in your treeData.nodes
-            });
 
             const options = {
                 layout: {
@@ -97,46 +151,20 @@
                 interaction: {
                     dragNodes: false,
                     dragView: true, // Enable dragging the view
-                    zoomView: true // Enable zooming the view
+                    zoomView: true, // Enable zooming the view
                 },
                 manipulation: {
                     enabled: true,
                     addNode: function (data, callback) {
-                        const newNodeLabel = prompt("Enter new node label:");
-                        if (newNodeLabel) {
-                            data.label = newNodeLabel;
-                            callback(data);
-                        } else {
-                            callback(null);
-                        }
+                        openModal('Enter new node label:', '', callback);
                     },
                     editNode: function (data, callback) {
-                        const newNodeLabel = prompt("Edit node label:", data.label);
-                        if (newNodeLabel) {
-                            data.label = newNodeLabel;
-                            callback(data);
-                        } else {
-                            callback(null);
-                        }
+                        openModal('Edit node label:', data.label, callback);
                     }
                 }
             };
 
             const network = new vis.Network(container, data, options);
-
-            // Function to handle zooming in
-            function zoomIn() {
-                network.zoomIn();
-            }
-
-            // Function to handle zooming out
-            function zoomOut() {
-                network.zoomOut();
-            }
-
-            // Add event listeners to the zoom buttons
-            document.getElementById('zoomInButton').addEventListener('click', zoomIn);
-            document.getElementById('zoomOutButton').addEventListener('click', zoomOut);
 
             // Function to save changes
             function saveChanges() {
@@ -167,14 +195,60 @@
             document.getElementById('saveButton').addEventListener('click', saveChanges);
 
             // Fit the network to the content after it's fully loaded
-            network.on('stabilized', function() {
+            network.on('stabilized', function () {
                 network.fit();
+            });
+
+            // Modal functionality
+            const modal = document.getElementById('myModal');
+            const span = document.getElementsByClassName('close')[0];
+            const saveLabelButton = document.getElementById('saveLabelButton');
+            const nodeLabelInput = document.getElementById('nodeLabelInput');
+
+            // Open the modal
+            function openModal(promptText, defaultValue, callback) {
+                nodeLabelInput.value = defaultValue;
+                modal.style.display = 'block';
+                const saveCallback = () => {
+                    const newNodeLabel = nodeLabelInput.value.trim();
+                    if (newNodeLabel) {
+                        callback({ label: newNodeLabel });
+                        modal.style.display = 'none';
+                    } else {
+                        alert('Please enter a valid label.');
+                    }
+                };
+                saveLabelButton.onclick = saveCallback;
+                // Allow saving by pressing Enter
+                nodeLabelInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        saveCallback();
+                    }
+                });
+            }
+
+            // Close the modal
+            span.onclick = function () {
+                modal.style.display = 'none';
+            };
+
+            // Close the modal when pressing Escape key
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    modal.style.display = 'none';
+                }
             });
         }
 
         window.onload = function () {
             loadTreeData().then(treeData => {
                 createNetwork(treeData);
+                // Add event listener to prevent zooming out when clicking buttons
+                document.querySelectorAll('button').forEach(button => {
+                    button.addEventListener('click', function (event) {
+                        event.stopPropagation();
+                    });
+                });
             }).catch(error => {
                 console.error('Error loading tree data:', error);
             });

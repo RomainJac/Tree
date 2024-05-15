@@ -2,71 +2,71 @@
     "nodes": [
         {
             "id": 1,
-            "label": "Groupe BPCE"
+            "label": "Node 1"
         },
         {
             "id": 2,
-            "label": "Other GBPCE L2"
+            "label": "Node 2"
         },
         {
             "id": 3,
-            "label": "RBP L2"
+            "label": "Node 3"
         },
         {
             "id": 4,
-            "label": "RCE L2"
+            "label": "Node 4"
         },
         {
             "id": 5,
-            "label": "BPCE SA"
+            "label": "Node 5"
         },
         {
             "id": 6,
-            "label": "Other GBPCE L3"
+            "label": "Node 6"
         },
         {
             "id": 7,
-            "label": "GBPCE intragroup adjustments"
+            "label": "Node 7"
         },
         {
             "id": 8,
-            "label": "GBPCE liquidity management"
+            "label": "Node 8"
         },
         {
             "id": 9,
-            "label": "NATIXIS"
+            "label": "Node 9"
         },
         {
             "id": 10,
-            "label": "RBP L3"
+            "label": "Node 10"
         },
         {
             "id": 11,
-            "label": "RCE L3"
+            "label": "Node 11"
         },
         {
             "id": 12,
-            "label": "RBP"
+            "label": "Node 12"
         },
         {
             "id": 13,
-            "label": "RCE"
+            "label": "Node 13"
         },
         {
             "id": 14,
-            "label": "Other GBPCE"
+            "label": "Node 14"
         },
         {
             "id": 15,
-            "label": "Other GBPCE L2"
+            "label": "Node 15"
         },
         {
             "id": 16,
-            "label": "Other GBPCE L3"
+            "label": "Node 16"
         },
         {
             "id": 17,
-            "label": "NATIXIS SUBSET 1"
+            "label": "Node 17"
         },
         {
             "id": 19,
@@ -168,7 +168,7 @@
             "id": "6e8cbd51-d4e0-46ce-9bd5-af465dd97956",
             "x": 270.34499226227837,
             "y": -851.5562177053602,
-            "label": "Maman"
+            "label": "Node 43"
         }
     ],
     "edges": [
@@ -331,51 +331,6 @@
             "from": 5,
             "to": 34,
             "id": "2b5bc2fb-c0e6-4bc0-9012-7697b8c823b6"
-        },
-        {
-            "from": 5,
-            "to": 35,
-            "id": "eedea389-af94-480d-8b92-619eddd0c1f0"
-        },
-        {
-            "from": 5,
-            "to": 36,
-            "id": "095fc791-f7da-4531-9718-235bccac1c2c"
-        },
-        {
-            "from": 5,
-            "to": 37,
-            "id": "d2af0fb9-557e-418e-934a-4dea3158c525"
-        },
-        {
-            "from": 5,
-            "to": 38,
-            "id": "8cdc9afb-c2a1-43af-a5cb-ca69fc636954"
-        },
-        {
-            "from": 5,
-            "to": 39,
-            "id": "6875b77a-adae-4d21-a163-69300b4c1725"
-        },
-        {
-            "from": 5,
-            "to": 40,
-            "id": "931f6747-4d39-48d2-931c-e68c71ea1683"
-        },
-        {
-            "from": 5,
-            "to": 41,
-            "id": "9e015eb1-a598-4863-9f53-d1fe10c95a48"
-        },
-        {
-            "from": 5,
-            "to": 42,
-            "id": "40c12ff3-7a43-45ae-847d-e61da35723cd"
-        },
-        {
-            "from": 17,
-            "to": "6e8cbd51-d4e0-46ce-9bd5-af465dd97956",
-            "id": "e21ebc6c-9168-4e8f-87a8-5af67152a15e"
         }
     ]
 }
