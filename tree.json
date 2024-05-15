@@ -1,0 +1,381 @@
+{
+    "nodes": [
+        {
+            "id": 1,
+            "label": "Groupe BPCE"
+        },
+        {
+            "id": 2,
+            "label": "Other GBPCE L2"
+        },
+        {
+            "id": 3,
+            "label": "RBP L2"
+        },
+        {
+            "id": 4,
+            "label": "RCE L2"
+        },
+        {
+            "id": 5,
+            "label": "BPCE SA"
+        },
+        {
+            "id": 6,
+            "label": "Other GBPCE L3"
+        },
+        {
+            "id": 7,
+            "label": "GBPCE intragroup adjustments"
+        },
+        {
+            "id": 8,
+            "label": "GBPCE liquidity management"
+        },
+        {
+            "id": 9,
+            "label": "NATIXIS"
+        },
+        {
+            "id": 10,
+            "label": "RBP L3"
+        },
+        {
+            "id": 11,
+            "label": "RCE L3"
+        },
+        {
+            "id": 12,
+            "label": "RBP"
+        },
+        {
+            "id": 13,
+            "label": "RCE"
+        },
+        {
+            "id": 14,
+            "label": "Other GBPCE"
+        },
+        {
+            "id": 15,
+            "label": "Other GBPCE L2"
+        },
+        {
+            "id": 16,
+            "label": "Other GBPCE L3"
+        },
+        {
+            "id": 17,
+            "label": "NATIXIS SUBSET 1"
+        },
+        {
+            "id": 19,
+            "label": "Node 19"
+        },
+        {
+            "id": 20,
+            "label": "Node 20"
+        },
+        {
+            "id": 21,
+            "label": "Node 21"
+        },
+        {
+            "id": 22,
+            "label": "Node 22"
+        },
+        {
+            "id": 23,
+            "label": "Node 23"
+        },
+        {
+            "id": 24,
+            "label": "Node 24"
+        },
+        {
+            "id": 25,
+            "label": "Node 25"
+        },
+        {
+            "id": 26,
+            "label": "Node 26"
+        },
+        {
+            "id": 27,
+            "label": "Node 27"
+        },
+        {
+            "id": 28,
+            "label": "Node 28"
+        },
+        {
+            "id": 29,
+            "label": "Node 29"
+        },
+        {
+            "id": 30,
+            "label": "Node 30"
+        },
+        {
+            "id": 31,
+            "label": "Node 31"
+        },
+        {
+            "id": 32,
+            "label": "Node 32"
+        },
+        {
+            "id": 33,
+            "label": "Node 33"
+        },
+        {
+            "id": 34,
+            "label": "Node 34"
+        },
+        {
+            "id": 35,
+            "label": "Node 35"
+        },
+        {
+            "id": 36,
+            "label": "Node 36"
+        },
+        {
+            "id": 37,
+            "label": "Node 37"
+        },
+        {
+            "id": 38,
+            "label": "Node 38"
+        },
+        {
+            "id": 39,
+            "label": "Node 39"
+        },
+        {
+            "id": 40,
+            "label": "Node 40"
+        },
+        {
+            "id": 41,
+            "label": "Node 41"
+        },
+        {
+            "id": 42,
+            "label": "Node 42"
+        },
+        {
+            "id": "6e8cbd51-d4e0-46ce-9bd5-af465dd97956",
+            "x": 270.34499226227837,
+            "y": -851.5562177053602,
+            "label": "Maman"
+        }
+    ],
+    "edges": [
+        {
+            "from": 1,
+            "to": 2,
+            "id": "8b0e23f8-ec3f-4f9d-a8fe-8cf554ed18d4"
+        },
+        {
+            "from": 1,
+            "to": 3,
+            "id": "f78db168-70f9-45a2-9950-6bcd51085503"
+        },
+        {
+            "from": 1,
+            "to": 4,
+            "id": "88a5956c-ff97-4a47-8a40-767ba84123c1"
+        },
+        {
+            "from": 1,
+            "to": 5,
+            "id": "bc7314e2-9222-4fed-9069-25e3e63b36ff"
+        },
+        {
+            "from": 2,
+            "to": 6,
+            "id": "39eb377f-87f1-438e-b53b-cc02f1725e27"
+        },
+        {
+            "from": 6,
+            "to": 7,
+            "id": "df2b30ae-d3d5-40a5-be2e-702343a5b07b"
+        },
+        {
+            "from": 6,
+            "to": 8,
+            "id": "1ec06175-09cf-4515-9fc1-5ffb57eb1a88"
+        },
+        {
+            "from": 5,
+            "to": 9,
+            "id": "4e8b751e-78b7-4d70-9d19-3d741fabacb0"
+        },
+        {
+            "from": 3,
+            "to": 10,
+            "id": "5c0294e4-aec1-4848-8ab3-e763e112e4e4"
+        },
+        {
+            "from": 4,
+            "to": 11,
+            "id": "0fceddc2-6a00-4f03-baef-1dc84f67c0e7"
+        },
+        {
+            "from": 10,
+            "to": 12,
+            "id": "f5cc9c4f-3544-4b0f-8795-01fc99956e93"
+        },
+        {
+            "from": 11,
+            "to": 13,
+            "id": "42e1d82b-29e1-48cf-9c5f-9ee0be47b5e5"
+        },
+        {
+            "from": 1,
+            "to": 14,
+            "id": "588ccece-328e-4725-9381-f8d7c4767220"
+        },
+        {
+            "from": 14,
+            "to": 15,
+            "id": "4d2aa2b2-4916-4132-bbe3-c6b640fd259e"
+        },
+        {
+            "from": 15,
+            "to": 16,
+            "id": "099c4ca9-f015-48b3-a0d6-7fb8822d6d7b"
+        },
+        {
+            "from": 9,
+            "to": 17,
+            "id": "35debd87-f019-4eb8-a17b-a0f3b068a059"
+        },
+        {
+            "from": 5,
+            "to": 19,
+            "id": "5a09ec67-fe72-4d9f-9ebc-0b9a492fba6d"
+        },
+        {
+            "from": 5,
+            "to": 20,
+            "id": "4ff14645-bf3d-4561-8b89-c95e5dd6b922"
+        },
+        {
+            "from": 5,
+            "to": 21,
+            "id": "a0cd36b6-74ab-42a3-8d01-99721360d748"
+        },
+        {
+            "from": 5,
+            "to": 22,
+            "id": "f644e14c-faa2-4008-9b97-e349750bf8fb"
+        },
+        {
+            "from": 5,
+            "to": 23,
+            "id": "71a5a818-ebca-448f-a34b-411d8a6f0201"
+        },
+        {
+            "from": 5,
+            "to": 24,
+            "id": "57441c66-886b-4dee-a31c-090a3f5c311c"
+        },
+        {
+            "from": 5,
+            "to": 25,
+            "id": "a02dc5e6-d10a-4974-9d70-ab1346a2c560"
+        },
+        {
+            "from": 5,
+            "to": 26,
+            "id": "41ba886e-c692-45b2-b30c-dace4d8b9b0a"
+        },
+        {
+            "from": 5,
+            "to": 27,
+            "id": "663a3744-d3d2-4828-8a79-ad02812c7c75"
+        },
+        {
+            "from": 5,
+            "to": 28,
+            "id": "53ed0578-3fb5-467e-b35e-805ef9d67a7a"
+        },
+        {
+            "from": 5,
+            "to": 29,
+            "id": "0ceb54ed-7f22-45ea-9e32-b4f70ee7744e"
+        },
+        {
+            "from": 5,
+            "to": 30,
+            "id": "6c0281bc-e0f3-4933-ad91-d420740f608a"
+        },
+        {
+            "from": 5,
+            "to": 31,
+            "id": "675666db-4312-4026-b404-1d1a342f4d11"
+        },
+        {
+            "from": 5,
+            "to": 32,
+            "id": "5fbef3ae-c2b4-48db-9004-3ffa18964721"
+        },
+        {
+            "from": 5,
+            "to": 33,
+            "id": "4f1dc4d3-75cb-49f8-944f-e32be6f55c64"
+        },
+        {
+            "from": 5,
+            "to": 34,
+            "id": "2b5bc2fb-c0e6-4bc0-9012-7697b8c823b6"
+        },
+        {
+            "from": 5,
+            "to": 35,
+            "id": "eedea389-af94-480d-8b92-619eddd0c1f0"
+        },
+        {
+            "from": 5,
+            "to": 36,
+            "id": "095fc791-f7da-4531-9718-235bccac1c2c"
+        },
+        {
+            "from": 5,
+            "to": 37,
+            "id": "d2af0fb9-557e-418e-934a-4dea3158c525"
+        },
+        {
+            "from": 5,
+            "to": 38,
+            "id": "8cdc9afb-c2a1-43af-a5cb-ca69fc636954"
+        },
+        {
+            "from": 5,
+            "to": 39,
+            "id": "6875b77a-adae-4d21-a163-69300b4c1725"
+        },
+        {
+            "from": 5,
+            "to": 40,
+            "id": "931f6747-4d39-48d2-931c-e68c71ea1683"
+        },
+        {
+            "from": 5,
+            "to": 41,
+            "id": "9e015eb1-a598-4863-9f53-d1fe10c95a48"
+        },
+        {
+            "from": 5,
+            "to": 42,
+            "id": "40c12ff3-7a43-45ae-847d-e61da35723cd"
+        },
+        {
+            "from": 17,
+            "to": "6e8cbd51-d4e0-46ce-9bd5-af465dd97956",
+            "id": "e21ebc6c-9168-4e8f-87a8-5af67152a15e"
+        }
+    ]
+}

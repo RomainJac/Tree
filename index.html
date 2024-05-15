@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hierarchical Tree</title>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden; /* Prevent body from scrolling */
+    }
+
+    #controls {
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center; /* Align items vertically */
+    }
+
+    #mynetwork {
+        flex: 1;
+        border: 1px solid lightgray;
+        overflow: auto; /* Enable scrolling for the network */
+    }
+
+    button {
+        font-size: 1.2em;
+        padding: 10px;
+    }
+
+    .control-buttons {
+        display: flex;
+    }
+
+    .zoom-button {
+        margin-right: 10px; /* Add some space between buttons */
+    }
+</style>
+
+<body>
+    <div id="controls">
+        <div class="control-buttons">
+            <button id="zoomInButton" class="zoom-button">Zoom In</button>
+            <button id="zoomOutButton" class="zoom-button">Zoom Out</button>
+        </div>
+        <div class="control-buttons">
+            <button id="saveButton">Save Changes</button>
+        </div>
+    </div>
+    <div id="mynetwork"></div>
+    <script>
+        async function loadTreeData() {
+            const response = await fetch('/tree.json');
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return await response.json();
+        }
+
+        function createNetwork(treeData) {
+            const nodes = new vis.DataSet(treeData.nodes);
+            const edges = new vis.DataSet(treeData.edges);
+
+            const container = document.getElementById('mynetwork');
+            const data = { nodes: nodes, edges: edges };
+
+            // Define colors for each hierarchy level
+            const colors = ['#FFFFFF', '#F0F00F', '#C41616']; // Example colors, you can add more colors as needed
+
+            // Set node color based on hierarchy level
+            nodes.forEach(function (node) {
+                node.color = colors[node.level - 1]; // Assuming 'level' property exists in your treeData.nodes
+            });
+
+            const options = {
+                layout: {
+                    hierarchical: {
+                        direction: 'LR',
+                        sortMethod: 'directed'
+                    }
+                },
+                nodes: {
+                    shape: 'box',
+                    fixed: true,
+                    font: { size: 12 },
+                    widthConstraint: { maximum: 100 }
+                },
+                edges: { smooth: true },
+                interaction: {
+                    dragNodes: false,
+                    dragView: true, // Enable dragging the view
+                    zoomView: true // Enable zooming the view
+                },
+                manipulation: {
+                    enabled: true,
+                    addNode: function (data, callback) {
+                        const newNodeLabel = prompt("Enter new node label:");
+                        if (newNodeLabel) {
+                            data.label = newNodeLabel;
+                            callback(data);
+                        } else {
+                            callback(null);
+                        }
+                    },
+                    editNode: function (data, callback) {
+                        const newNodeLabel = prompt("Edit node label:", data.label);
+                        if (newNodeLabel) {
+                            data.label = newNodeLabel;
+                            callback(data);
+                        } else {
+                            callback(null);
+                        }
+                    }
+                }
+            };
+
+            const network = new vis.Network(container, data, options);
+
+            // Function to handle zooming in
+            function zoomIn() {
+                network.zoomIn();
+            }
+
+            // Function to handle zooming out
+            function zoomOut() {
+                network.zoomOut();
+            }
+
+            // Add event listeners to the zoom buttons
+            document.getElementById('zoomInButton').addEventListener('click', zoomIn);
+            document.getElementById('zoomOutButton').addEventListener('click', zoomOut);
+
+            // Function to save changes
+            function saveChanges() {
+                const updatedNodes = nodes.get();
+                const updatedEdges = edges.get();
+                const updatedData = {
+                    nodes: updatedNodes,
+                    edges: updatedEdges
+                };
+
+                fetch('/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedData)
+                }).then(response => {
+                    if (response.ok) {
+                        alert('Changes saved successfully!');
+                    } else {
+                        alert('Failed to save changes.');
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+
+            document.getElementById('saveButton').addEventListener('click', saveChanges);
+
+            // Fit the network to the content after it's fully loaded
+            network.on('stabilized', function() {
+                network.fit();
+            });
+        }
+
+        window.onload = function () {
+            loadTreeData().then(treeData => {
+                createNetwork(treeData);
+            }).catch(error => {
+                console.error('Error loading tree data:', error);
+            });
+        };
+
+    </script>
+</body>
+
+</html>
