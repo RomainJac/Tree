@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hierarchical Tree</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+    <div id="controls">
+        <div>
+            <button id="addNodeButton">Add Node</button>
+            <button id="addEdgeButton">Add Edge</button>
+        </div>
+        <button id="saveButton">Save Changes</button>
+    </div>
+    <div id="mynetwork"></div>
+    <script src="script.js"></script>
+</body>
+</html>
+
+async function loadTreeData() {
+    const response = await fetch('/tree.json');
+    if (!response.ok) {
+        throw new Error('Network response was not ok ' + response.statusText);
+    }
+    return await response.json();
+}
+
+function createNetwork(treeData) {
+    const nodes = new vis.DataSet(treeData.nodes);
+    const edges = new vis.DataSet(treeData.edges);
+
+    const container = document.getElementById('mynetwork');
+    const data = { nodes: nodes, edges: edges };
+    const options = {
+        layout: {
+            hierarchical: {
+                direction: 'LR',
+                sortMethod: 'directed'
+            }
+        },
+        nodes: {
+            shape: 'box',
+            fixed: true,
+            font: { size: 12 },
+            widthConstraint: { maximum: 100 }
+        },
+        edges: { smooth: true },
+        interaction: {
+            dragNodes: false,
+            dragView: false,
+            zoomView: false
+        },
+        manipulation: {
+            enabled: true,
+            addNode: function (data, callback) {
+                const newNodeLabel = prompt("Enter new node label:");
+                if (newNodeLabel) {
+                    data.label = newNodeLabel;
+                    callback(data);
+                } else {
+                    callback(null);
+                }
+            },
+            editNode: function (data, callback) {
+                const newNodeLabel = prompt("Edit node label:", data.label);
+                if (newNodeLabel) {
+                    data.label = newNodeLabel;
+                    callback(data);
+                } else {
+                    callback(null);
+                }
+            }
+        }
+    };
+
+    const network = new vis.Network(container, data, options);
+
+    function saveChanges() {
+        const updatedNodes = nodes.get();
+        const updatedEdges = edges.get();
+        const updatedData = {
+            nodes: updatedNodes,
+            edges: updatedEdges
+        };
+
+        fetch('/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedData)
+        }).then(response => {
+            if (response.ok) {
+                alert('Changes saved successfully!');
+            } else {
+                alert('Failed to save changes.');
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    document.getElementById('saveButton').addEventListener('click', saveChanges);
+    document.getElementById('addNodeButton').addEventListener('click', () => network.addNodeMode());
+    document.getElementById('addEdgeButton').addEventListener('click', () => network.addEdgeMode());
+}
+
+window.onload = function() {
+    loadTreeData().then(treeData => {
+        createNetwork(treeData);
+    }).catch(error => {
+        console.error('Error loading tree data:', error);
+    });
+};
+
