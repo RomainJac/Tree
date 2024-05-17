@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Structure</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container mt-5 d-flex justify-content-between">
+        <button id="addRowBtn" class="btn btn-success">Add Row</button>
+        <button id="submitBtn" class="btn btn-primary">Submit</button>
+    </div>
+    <div class="container mt-3">
+        <h1 class="text-center">Tree Structure</h1>
+        <div class="form-group">
+            <label for="rootNameInput">Root Name:</label>
+            <input type="text" id="rootNameInput" class="form-control">
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Level 0</th>
+                        <th>Level 1</th>
+                        <th>Level 2</th>
+                        <th>Level 3</th>
+                        <th>Level 4</th>
+                        <th>Country</th>
+                        <th>Currency</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="treeTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal de suppression -->
+    <div id="deleteModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this row?
+                </div>
+                <div class="modal-footer">
+                    <button id="confirmDelete" type="button" class="btn btn-danger">Yes</button>
+                    <button id="cancelDelete" type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery, Popper.js, and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- External JavaScript -->
+    <script src="script.js"></script>
+</body>
+
+</html>
+
+
+$(document).ready(function () {
+    const tableBody = $('#treeTableBody');
+    let currentData = {};
+    let rootName = '';
+
+    function generateTable(data) {
+        tableBody.empty();
+
+        function traverse(node, path) {
+            if (typeof node === 'object' && node !== null && !Array.isArray(node)) {
+                Object.entries(node).forEach(([key, value]) => {
+                    traverse(value, [...path, key]);
+                });
+            } else if (Array.isArray(node)) {
+                const [level1, level2, level3, level4] = path;
+                const [Country, Currency] = node;
+                const deleteBtn = $('<button class="delete-btn btn btn-link">Delete</button>');
+                tableBody.append(`
+                    <tr>
+                        <td>${rootName}</td>
+                        <td contenteditable="true">${level1}</td>
+                        <td contenteditable="true">${level2}</td>
+                        <td contenteditable="true">${level3}</td>
+                        <td contenteditable="true">${level4}</td>
+                        <td contenteditable="true">${Country}</td>
+                        <td contenteditable="true">${Currency}</td>
+                        <td>${deleteBtn.prop('outerHTML')}</td>
+                    </tr>
+                `);
+            }
+        }
+
+        traverse(data, []);
+    }
+
+    function loadJson() {
+        $.ajax({
+            url: '/api/tree',
+            method: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                currentData = data;
+                rootName = Object.keys(currentData)[0]; // Identify the root
+                $('#rootNameInput').val(rootName);
+                generateTable(currentData[rootName]);
+            },
+            error: function (error) {
+                alert('Error loading JSON data');
+            }
+        });
+    }
+
+    loadJson(); // Load JSON on page load
+
+    // Update rootName when input changes
+    $('#rootNameInput').on('input', function () {
+        rootName = $(this).val();
+        tableBody.find('tr').each(function () {
+            $(this).find('td').eq(0).text(rootName);
+        });
+    });
+
+    // Use event delegation for delete buttons
+    tableBody.on('click', '.delete-btn', function () {
+        const row = $(this).closest('tr');
+        $('#deleteModal').modal('show');
+        $('#confirmDelete').one('click', function () {
+            row.remove();
+            $('#deleteModal').modal('hide');
+        });
+    });
+
+    $('#cancelDelete').on('click', function () {
+        $('#deleteModal').modal('hide');
+    });
+
+    $('#submitBtn').on('click', function () {
+        // Vérification des cases vides
+        let isEmpty = false;
+        tableBody.find('tr').each(function (index, row) {
+            const cols = $(row).find('td');
+            cols.each(function (index, col) {
+                if ($(col).text().trim() === '') {
+                    isEmpty = true;
+                    return false; // Sortir de la boucle interne
+                }
+            });
+            if (isEmpty) {
+                return false; // Sortir de la boucle externe
+            }
+        });
+
+        if (isEmpty) {
+            alert('Veuillez remplir toutes les cases avant de soumettre.');
+            return;
+        }
+
+        // Code pour soumettre les données
+        const newData = {};
+        newData[rootName] = {};
+
+        tableBody.find('tr').each(function (index, row) {
+            const cols = $(row).find('td');
+            const level1 = $(cols[1]).text().trim() || 'N/A';
+            const level2 = $(cols[2]).text().trim() || 'N/A';
+            const level3 = $(cols[3]).text().trim() || 'N/A';
+            const level4 = $(cols[4]).text().trim() || 'N/A';
+            const Country = $(cols[5]).text().trim() || 'N/A';
+            const Currency = $(cols[6]).text().trim() || 'N/A';
+
+            let currentNode = newData[rootName];
+            const path = [level1, level2, level3, level4];
+            path.forEach((level, index) => {
+                if (!currentNode[level]) {
+                    currentNode[level] = {};
+                }
+                if (index === path.length - 1) {
+                    currentNode[level] = [Country, Currency];
+                } else {
+                    currentNode = currentNode[level];
+                }
+            });
+        });
+
+        $.ajax({
+            url: '/api/tree',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(newData),
+            success: function (response) {
+                alert(response);
+                loadJson();
+            },
+            error: function (error) {
+                alert('Error saving data');
+            }
+        });
+    });
+
+    $('#addRowBtn').on('click', function () {
+        // Ajouter une nouvelle ligne avec des cellules vides
+        tableBody.prepend(`
+            <tr>
+                <td>${rootName}</td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td><button class="delete-btn btn btn-link">Delete</button></td>
+            </tr>
+        `);
+    });
+});
+
