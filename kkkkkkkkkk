@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hierarchical Tree</title>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+        /* Prevent body from scrolling */
+    }
+
+    #controls {
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        /* Align items to the right */
+        align-items: center;
+        /* Align items vertically */
+    }
+
+    #mynetwork {
+        flex: 1;
+        border: 1px solid lightgray;
+        overflow: auto;
+        /* Enable scrolling for the network */
+    }
+
+    button {
+        font-size: 1.2em;
+        padding: 10px;
+    }
+
+    .control-buttons {
+        display: flex;
+    }
+
+    .save-button,
+    .level-button {
+        margin-left: 10px;
+        /* Add some space between buttons */
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgb(0, 0, 0);
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 50%;
+    }
+
+    .close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .btn-container {
+        text-align: center;
+    }
+</style>
+
+<body>
+    <div id="controls">
+        <div class="level-buttons">
+            <button class="level-button" data-level="0">Level 0</button>
+            <button class="level-button" data-level="1">Level 1</button>
+            <button class="level-button" data-level="2">Level 2</button>
+            <button class="level-button" data-level="3">Level 3</button>
+            <button class="level-button" data-level="4">Level 4</button>
+        </div>
+        <div class="control-buttons">
+            <button id="saveButton" class="save-button">Save Changes</button>
+        </div>
+    </div>
+    <div id="mynetwork"></div>
+
+    <!-- Modal -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <input type="text" id="nodeLabelInput">
+            <div class="btn-container">
+                <button id="saveLabelButton">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allNodes, allEdges, nodes, edges, network, currentNodeId;
+
+        async function loadTreeData() {
+            const response = await fetch('/tree.json');
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return await response.json();
+        }
+
+        function filterNodesByLevel(currentNodeId, level) {
+            const newNodes = [];
+            const newEdges = [];
+            const queue = [{ id: currentNodeId, depth: 0 }];
+
+            while (queue.length > 0) {
+                const { id, depth } = queue.shift();
+                if (depth > level) continue;
+
+                const currentNode = allNodes.find(node => node.id === id);
+                if (!newNodes.some(node => node.id === id)) {
+                    newNodes.push(currentNode);
+                }
+
+                if (depth < level) {
+                    const childEdges = allEdges.filter(edge => edge.from === id);
+                    childEdges.forEach(edge => {
+                        if (!newEdges.some(e => e.id === edge.id)) {
+                            newEdges.push(edge);
+                            queue.push({ id: edge.to, depth: depth + 1 });
+                        }
+                    });
+                }
+            }
+
+            return { nodes: newNodes, edges: newEdges };
+        }
+
+        function createNetwork(treeData) {
+            allNodes = treeData.nodes;
+            allEdges = treeData.edges;
+
+            // Start with the root node
+            currentNodeId = allNodes[0].id;
+            const filteredData = filterNodesByLevel(currentNodeId, 0);
+
+            nodes = new vis.DataSet(filteredData.nodes);
+            edges = new vis.DataSet(filteredData.edges);
+
+            const container = document.getElementById('mynetwork');
+            const data = { nodes: nodes, edges: edges };
+
+            const options = {
+                layout: {
+                    hierarchical: {
+                        direction: 'LR',
+                        sortMethod: 'directed'
+                    }
+                },
+                nodes: {
+                    shape: 'box',
+                    fixed: true,
+                    font: { size: 12 },
+                    widthConstraint: { maximum: 100 }
+                },
+                edges: { smooth: true },
+                interaction: {
+                    dragNodes: false,
+                    dragView: true, // Enable dragging the view
+                    zoomView: true, // Enable zooming the view
+                    selectable: true
+                },
+                manipulation: {
+                    enabled: true,
+                    addNode: function (data, callback) {
+                        openModal('Enter new node label:', '', callback);
+                    },
+                    editNode: function (data, callback) {
+                        openModal('Edit node label:', data.label, callback);
+                    }
+                }
+            };
+
+            network = new vis.Network(container, data, options);
+
+            // Update view on node click
+            network.on('click', function (params) {
+                if (params.nodes.length > 0) {
+                    currentNodeId = params.nodes[0];
+                    updateNetworkView(0);
+                }
+            });
+
+            // Function to save changes
+            function saveChanges() {
+                const updatedNodes = nodes.get();
+                const updatedEdges = edges.get();
+                const updatedData = {
+                    nodes: updatedNodes,
+                    edges: updatedEdges
+                };
+
+                fetch('/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedData)
+                }).then(response => {
+                    if (response.ok) {
+                        alert('Changes saved successfully!');
+                    } else {
+                        alert('Failed to save changes.');
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+
+            document.getElementById('saveButton').addEventListener('click', function(event) {
+                event.stopPropagation(); // Prevent zoom out
+                saveChanges();
+            });
+
+            // Fit the network to the content after it's fully loaded
+            network.on('stabilized', function () {
+                network.fit();
+            });
+
+            // Modal functionality
+            const modal = document.getElementById('myModal');
+            const span = document.getElementsByClassName('close')[0];
+            const saveLabelButton = document.getElementById('saveLabelButton');
+            const nodeLabelInput = document.getElementById('nodeLabelInput');
+
+            // Open the modal
+            function openModal(promptText, defaultValue, callback) {
+                nodeLabelInput.value = defaultValue;
+                modal.style.display = 'block';
+                const saveCallback = () => {
+                    const newNodeLabel = nodeLabelInput.value.trim();
+                    if (newNodeLabel) {
+                        callback({ label: newNodeLabel });
+                        modal.style.display = 'none';
+                    } else {
+                        alert('Please enter a valid label.');
+                    }
+                };
+                saveLabelButton.onclick = saveCallback;
+                // Allow saving by pressing Enter
+                nodeLabelInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        saveCallback();
+                    }
+                });
+            }
+
+            // Close the modal
+            span.onclick = function () {
+                modal.style.display = 'none';
+            };
+
+            // Close the modal when pressing Escape key
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        function updateNetworkView(level) {
+            const filteredData = filterNodesByLevel(currentNodeId, level);
+            nodes.clear();
+            edges.clear();
+            nodes.add(filteredData.nodes);
+            edges.add(filteredData.edges);
+        }
+
+        window.onload = function () {
+            loadTreeData().then(treeData => {
+                createNetwork(treeData);
+            }).catch(error => {
+                console.error('Error loading tree data:', error);
+            });
+
+            // Level buttons event listeners
+            document.querySelectorAll('.level-button').forEach(button => {
+                button.addEventListener('click', function () {
+                    const level = parseInt(this.getAttribute('data-level'));
+                    updateNetworkView(level);
+                });
+            });
+        };
+    </script>
+</body>
+
+</html>
