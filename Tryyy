@@ -1,0 +1,196 @@
+<template>
+  <div>
+    <table>
+      <thead>
+        <tr>
+          <th>Level 1</th>
+          <th>Level 2</th>
+          <th>Level 3</th>
+          <th>Level 4</th>
+          <th>Country</th>
+          <th>Currency</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(row, rowIndex) in tableData" :key="rowIndex">
+          <td contenteditable @input="updateCell($event, rowIndex, 0)">{{ row[0] }}</td>
+          <td contenteditable @input="updateCell($event, rowIndex, 1)">{{ row[1] }}</td>
+          <td contenteditable @input="updateCell($event, rowIndex, 2)">{{ row[2] }}</td>
+          <td contenteditable @input="updateCell($event, rowIndex, 3)">{{ row[3] }}</td>
+          <td contenteditable @input="updateCell($event, rowIndex, 4)">{{ row[4] }}</td>
+          <td contenteditable @input="updateCell($event, rowIndex, 5)">{{ row[5] }}</td>
+          <td>
+            <button @click="prepareDelete(rowIndex)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <button @click="addRow">Add Row</button>
+    <button @click="submitData">Submit</button>
+
+    <!-- Modal for delete confirmation -->
+    <div id="deleteModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <p>Are you sure you want to delete this row?</p>
+        <button @click="confirmDelete">Yes</button>
+        <button @click="cancelDelete">No</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      rootName: '',
+      tableData: [],
+      deleteRowIndex: null,
+      etlUrl: '' // Ensure this URL is correct and properly configured
+    };
+  },
+  methods: {
+    loadJson() {
+      console.log('Loading JSON data');
+      fetch('http://127.0.0.1:5001/api/json-data-bu', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Data loaded:', data);
+        this.rootName = Object.keys(data.nodes[0])[0];
+        this.generateTable(data);
+      })
+      .catch(error => {
+        alert('Error loading JSON data');
+        console.error(error);
+      });
+    },
+    generateTable(data) {
+      this.tableData = [];
+      const traverse = (node, path) => {
+        if (typeof node === 'object' && node !== null && !Array.isArray(node)) {
+          Object.entries(node).forEach(([key, value]) => {
+            traverse(value, [...path, key]);
+          });
+        } else if (Array.isArray(node)) {
+          const [Country, Currency] = node;
+          this.tableData.push([...path, Country, Currency]);
+        }
+      };
+      traverse(data, []);
+      console.log('Table data generated:', this.tableData);
+    },
+    addRow() {
+      this.tableData.unshift(['', '', '', '', '', '']);
+    },
+    prepareDelete(index) {
+      this.deleteRowIndex = index;
+      const deleteModal = document.getElementById('deleteModal');
+      deleteModal.style.display = 'block';
+    },
+    cancelDelete() {
+      const deleteModal = document.getElementById('deleteModal');
+      deleteModal.style.display = 'none';
+    },
+    confirmDelete() {
+      if (this.deleteRowIndex !== null) {
+        this.tableData.splice(this.deleteRowIndex, 1);
+        this.deleteRowIndex = null;
+        const deleteModal = document.getElementById('deleteModal');
+        deleteModal.style.display = 'none';
+      }
+    },
+    updateCell(event, rowIndex, colIndex) {
+      this.tableData[rowIndex][colIndex] = event.target.textContent;
+    },
+    submitData() {
+      for (const row of this.tableData) {
+        for (const cell of row) {
+          if (!cell.trim()) {
+            alert('Please fill in all the cells before submitting.');
+            return;
+          }
+        }
+      }
+      const newData = {};
+      newData[this.rootName] = {};
+      for (const row of this.tableData) {
+        const [level1, level2, level3, level4, Country, Currency] = row;
+        const path = [level1, level2, level3, level4];
+        let currentNode = newData[this.rootName];
+        path.forEach((level, index) => {
+          if (!currentNode[level]) {
+            currentNode[level] = {};
+          }
+          if (index === path.length - 1) {
+            currentNode[level] = [Country, Currency];
+          } else {
+            currentNode = currentNode[level];
+          }
+        });
+      }
+      fetch('http://127.0.0.1:5001/api/json-data-bu', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newData)
+      })
+      .then(response => response.json())
+      .then(response => {
+        alert('Data saved successfully');
+        this.loadJson();
+      })
+      .catch(error => {
+        alert('Error saving data');
+        console.error(error);
+      });
+    }
+  },
+  mounted() {
+    this.loadJson();
+  }
+};
+</script>
+
+<style scoped>
+body {
+  font-family: Arial, sans-serif;
+}
+
+.delete-btn {
+  color: white;
+  cursor: pointer;
+  background: red;
+  border: black;
+}
+
+.modal-content {
+  text-align: center;
+}
+
+.modal {
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+</style>
