@@ -1,0 +1,226 @@
+<template>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between">
+            <button @click="addRow" class="btn btn-success">Add Row</button>
+            <button @click="submitData" class="btn btn-primary">Submit</button>
+        </div>
+        <div class="form-group mt-3">
+            <label for="rootNameInput">Root Name:</label>
+            <input type="text" id="rootNameInput" v-model="rootName" class="form-control">
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Level 0</th>
+                        <th>Level 1</th>
+                        <th>Level 2</th>
+                        <th>Level 3</th>
+                        <th>Level 4</th>
+                        <th>Country</th>
+                        <th>Currency</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(row, index) in tableData" :key="index">
+                        <td>{{ rootName }}</td>
+                        <td contenteditable="true" @input="updateCell($event, index, 1)">{{ row[1] }}</td>
+                        <td contenteditable="true" @input="updateCell($event, index, 2)">{{ row[2] }}</td>
+                        <td contenteditable="true" @input="updateCell($event, index, 3)">{{ row[3] }}</td>
+                        <td contenteditable="true" @input="updateCell($event, index, 4)">{{ row[4] }}</td>
+                        <td contenteditable="true" @input="updateCell($event, index, 5)">{{ row[5] }}</td>
+                        <td contenteditable="true" @input="updateCell($event, index, 6)">{{ row[6] }}</td>
+                        <td><button @click="deleteRow(index)" class="delete-btn btn btn-link">Delete</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Modal de suppression -->
+        <div id="deleteModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Are you sure you want to delete this row?
+                    </div>
+                    <div class="modal-footer">
+                        <button @click="confirmDelete" type="button" class="btn btn-danger">Yes</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+export default {
+    data() {
+        return {
+            rootName: '',
+            tableData: [],
+            deleteRowIndex: null
+        };
+    },
+    methods: {
+        loadJson() {
+            $.ajax({
+                url: '/api/tree',
+                method: 'GET',
+                dataType: 'json',
+                success: (data) => {
+                    this.rootName = Object.keys(data)[0];
+                    this.generateTable(data[this.rootName]);
+                },
+                error: (error) => {
+                    alert('Error loading JSON data');
+                }
+            });
+        },
+        generateTable(data) {
+            this.tableData = [];
+            const traverse = (node, path) => {
+                if (typeof node === 'object' && node !== null && !Array.isArray(node)) {
+                    Object.entries(node).forEach(([key, value]) => {
+                        traverse(value, [...path, key]);
+                    });
+                } else if (Array.isArray(node)) {
+                    const [Country, Currency] = node;
+                    this.tableData.push([...path, Country, Currency]);
+                }
+            };
+            traverse(data, []);
+        },
+        addRow() {
+            this.tableData.unshift(['', '', '', '', '', '', '']);
+        },
+        deleteRow(index) {
+            this.deleteRowIndex = index;
+            $('#deleteModal').modal('show');
+        },
+        confirmDelete() {
+            if (this.deleteRowIndex !== null) {
+                this.tableData.splice(this.deleteRowIndex, 1);
+                this.deleteRowIndex = null;
+                $('#deleteModal').modal('hide');
+            }
+        },
+        updateCell(event, rowIndex, colIndex) {
+            this.tableData[rowIndex][colIndex] = event.target.textContent;
+        },
+        submitData() {
+            // Vérification des cases vides
+            for (const row of this.tableData) {
+                for (const cell of row) {
+                    if (!cell.trim()) {
+                        alert('Veuillez remplir toutes les cases avant de soumettre.');
+                        return;
+                    }
+                }
+            }
+
+            const newData = {};
+            newData[this.rootName] = {};
+
+            for (const row of this.tableData) {
+                const [level1, level2, level3, level4, Country, Currency] = row;
+                let currentNode = newData[this.rootName];
+                const path = [level1, level2, level3, level4];
+                path.forEach((level, index) => {
+                    if (!currentNode[level]) {
+                        currentNode[level] = {};
+                    }
+                    if (index === path.length - 1) {
+                        currentNode[level] = [Country, Currency];
+                    } else {
+                        currentNode = currentNode[level];
+                    }
+                });
+            }
+
+            $.ajax({
+                url: '/api/tree',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(newData),
+                success: (response) => {
+                    alert(response);
+                    this.loadJson();
+                },
+                error: (error) => {
+                    alert('Error saving data');
+                }
+            });
+        }
+    },
+    mounted() {
+        this.loadJson();
+    }
+};
+</script>
+
+<style scoped>
+body {
+    font-family: Arial, sans-serif;
+}
+
+.delete-btn {
+    color: red;
+    cursor: pointer;
+    background: none;
+    border: none;
+}
+
+.modal-content {
+    text-align: center;
+}
+</style>
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Structure</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="app">
+        <tree-structure></tree-structure>
+    </div>
+
+    <!-- Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <!-- jQuery, Popper.js, and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Vue Component -->
+    <script type="module">
+        import TreeStructure from './TreeStructure.vue';
+
+        new Vue({
+            el: '#app',
+            components: {
+                TreeStructure
+            }
+        });
+    </script>
+</body>
+
+</html>
