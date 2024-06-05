@@ -1,0 +1,88 @@
+<template>
+  <div>
+    <input type="file" @change="handleFileUpload" />
+    <table>
+      <thead>
+        <tr>
+          <th v-for="header in headers" :key="header">{{ header }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="row in mappedData" :key="row.id">
+          <td v-for="(value, key) in row" :key="key">{{ value }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</template>
+
+<script>
+import Papa from 'papaparse';
+
+export default {
+  data() {
+    return {
+      rawData: [],
+      mappedData: [],
+      headers: []
+    };
+  },
+  methods: {
+    handleFileUpload(event) {
+      const file = event.target.files[0];
+      Papa.parse(file, {
+        complete: this.processCSV,
+        header: true
+      });
+    },
+    processCSV(result) {
+      this.rawData = result.data;
+      this.mapData();
+    },
+    mapData() {
+      this.mappedData = this.rawData.map(row => {
+        return {
+          MODULE: row['MODULE'],
+          NATURE: this.mapNature(row['NATURE']),
+          ENTITIES: this.mapEntities(row['ENTITIES']),
+          LIGNE_METIER: row['LIGNE_METIER'],
+          ANNEE: row['ANNEE'],
+          MONTANT: row['MONTANT'],
+          SCENARIO: row['SCENARIO']
+        };
+      });
+      this.headers = Object.keys(this.mappedData[0]);
+    },
+    mapNature(nature) {
+      const natureMapping = {
+        'PNL': 'Impact en résultat net',
+        'OCI': 'Impact en OCI (variation avant taxes)',
+        'Var_RWA': 'Impact annuel en RWA (variation)',
+        'Part_S_CET1_Assu': 'Impact annuel sur le montant des participations significatives en CET1 (variation)',
+        'Var_EL_equity': 'Impact annuel EL equity (variation)'
+      };
+      return natureMapping[nature] || nature;
+    },
+    mapEntities(entities) {
+      const entitiesMapping = {
+        'Groupe': 'BPCE Assurances',
+        'Insurance': 'BPCE Assurances',
+        'RBP': 'Prépar Vie'
+      };
+      return entitiesMapping[entities] || entities;
+    }
+  }
+};
+</script>
+
+<style scoped>
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th, td {
+  border: 1px solid black;
+  padding: 8px;
+  text-align: left;
+}
+</style>
