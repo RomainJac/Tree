@@ -1,0 +1,97 @@
+<template>
+  <div class="container mt-5">
+    <h1>Insurance Report</h1>
+    <input type="file" @change="onFileChange" class="form-control mb-3" />
+    <table class="table table-bordered" v-if="parsedData.length">
+      <thead>
+        <tr>
+          <th rowspan="2">Metric</th>
+          <th colspan="3" v-for="scenario in scenarios" :key="scenario">{{ scenarioLabels[scenario] }}</th>
+        </tr>
+        <tr>
+          <th v-for="(scenario, index) in scenarioColumns" :key="index">{{ scenario }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <template v-for="(item, index) in parsedData" :key="index">
+          <tr>
+            <td>{{ item.label }}</td>
+            <td v-for="(value, idx) in item.values" :key="idx">{{ value }}</td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </div>
+</template>
+
+<script>
+import Papa from 'papaparse';
+
+export default {
+  data() {
+    return {
+      parsedData: [],
+      scenarios: ['B', 'A1', 'A2', 'A3'],
+      scenarioLabels: {
+        B: 'Baseline',
+        A1: 'Adverse 1',
+        A2: 'Adverse 2',
+        A3: 'Adverse 3'
+      },
+      scenarioColumns: []
+    };
+  },
+  methods: {
+    onFileChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        Papa.parse(file, {
+          complete: this.parseCSV,
+          header: true,
+          skipEmptyLines: true
+        });
+      }
+    },
+    parseCSV(result) {
+      const data = result.data;
+      this.formatData(data);
+    },
+    formatData(data) {
+      const groupedData = {};
+      this.scenarios.forEach(scenario => {
+        this.scenarioColumns.push('2023', '2024', '2025');
+      });
+      data.forEach(row => {
+        const metric = row.NATURE;
+        const entity = row.ENTITES;
+        const scenario = row.SCENARIO;
+        const year = row.ANNEE;
+        const amount = row.MONTANT;
+
+        if (!groupedData[metric]) {
+          groupedData[metric] = {};
+          this.scenarios.forEach(scenario => {
+            groupedData[metric][scenario] = { '2023': '', '2024': '', '2025': '' };
+          });
+        }
+        groupedData[metric][scenario][year] = amount;
+      });
+
+      this.parsedData = Object.entries(groupedData).map(([label, values]) => ({
+        label,
+        values: this.scenarios.flatMap(scenario => [
+          values[scenario]['2023'],
+          values[scenario]['2024'],
+          values[scenario]['2025']
+        ])
+      }));
+    }
+  }
+};
+</script>
+
+<style>
+.container {
+  max-width: 1200px;
+}
+</style>
