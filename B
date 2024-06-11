@@ -1,0 +1,54 @@
+<template>
+  <div class="container mt-5">
+    <h1>Insurance Report</h1>
+    <input type="file" @change="onFileChange" class="form-control mb-3" />
+    <table class="table table-bordered" v-if="tableData.length">
+      <thead>
+        <tr>
+          <th v-for="header in headers" :key="header">{{ header }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(row, index) in tableData" :key="index">
+          <td v-for="(cell, idx) in row" :key="idx">{{ cell }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</template>
+
+<script>
+import * as Papa from 'papaparse';
+
+export default {
+  data() {
+    return {
+      headers: [],
+      tableData: []
+    };
+  },
+  methods: {
+    onFileChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        Papa.parse(file, {
+          complete: this.parseCSV,
+          header: true,
+          skipEmptyLines: true
+        });
+      }
+    },
+    parseCSV(result) {
+      const data = result.data;
+      this.headers = Object.keys(data[0]);
+      this.tableData = data.map(row => Object.values(row));
+    }
+  }
+};
+</script>
+
+<style>
+.container {
+  max-width: 1200px;
+}
+</style>
